@@ -1,0 +1,247 @@
+{
+  "name": "Telgram Jobs bot",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -96
+      ],
+      "id": "f3191845-4c01-4dd6-a4a5-a79c70c8b041",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "options": {
+          "systemMessage": "={{ $json.system_prompt }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        384,
+        0
+      ],
+      "id": "11c907bb-c167-45ae-8dfb-f79f997e5232",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        352,
+        256
+      ],
+      "id": "18a2eddf-478d-457d-b9d8-9ca3fb13c004",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "muBQq1rOZc2fMqMv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4f9cfb84-69a3-4365-93d3-dbaf5290ba28",
+              "name": "Sites",
+              "value": "Mostaql",
+              "type": "string"
+            },
+            {
+              "id": "cfc1ea9e-e469-496c-9de1-dce0737f43f2",
+              "name": "system_prompt",
+              "value": "You are a bot that monitors the Mostaql platform for new freelance jobs. Your task is to search for and list the latest jobs    For each job, include:  Job title Short description (1–2 lines) Budget and bids Link to the job post  Only include relevant and recent jobs. Format the output clearly and make it easy to read in a Telegram message (use bullet points or line breaks). answer should not exceed 3000 character",
+              "type": "string"
+            },
+            {
+              "id": "c4f65551-83a5-4b0f-9543-6cf161a99ec3",
+              "name": "jobs_host",
+              "value": "http://127.0.0.1:8000/search",
+              "type": "string"
+            },
+            {
+              "id": "4bcfc957-780a-4d6b-b319-0bcb95ededa0",
+              "name": "prefrences",
+              "value": "?sort=latest&category=development&category=ai-machine-learning&limit=100",
+              "type": "string"
+            },
+            {
+              "id": "ebf59cdf-eee3-4862-8ac0-f30b66a92e52",
+              "name": "prompt",
+              "value": "ابحث عن الوظائف و أعرض بس الوظائف المتعلقة بالذكاء الاصطاناعي و Automation",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "8d81aa90-346c-48d3-a371-06a0c2a9c6ed",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "chatId": "1135325996",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        -80
+      ],
+      "id": "6d50aed8-13ca-4c3b-b387-159c692f0090",
+      "name": "Send a text message",
+      "webhookId": "864e960b-ccfd-4b84-b02c-8b0310bdd561",
+      "credentials": {
+        "telegramApi": {
+          "id": "JhmwLW4ur8t09Qmh",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 59
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        96
+      ],
+      "id": "1d7c79be-4da3-4c63-9b65-1c47285d3fe1",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "toolDescription": "use this tool to search for jobs",
+        "url": "={{ $json.jobs_host }}{{ $json.prefrences }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        544,
+        256
+      ],
+      "id": "a248ef00-1005-46ff-81b3-46946f4a255b",
+      "name": "JobSearchTool"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JobSearchTool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f7296a32-033c-4f67-bb63-c9c623638011",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0b1df8be7040165138432fe0a5003327a4836b08224cb0760f28885d8e8e059b"
+  },
+  "id": "vwPHchwq0YW380lJ",
+  "tags": []
+}
