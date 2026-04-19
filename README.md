@@ -1,4 +1,4 @@
-# JobSearch Automation
+# Mostaql JobSearch Automation
 
 A project for scraping job listings from the Mostaql freelancing platform and exposing results through a simple FastAPI endpoint allowing interactoin between llms and the scraper through N8N
 
